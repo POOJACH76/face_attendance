@@ -12,8 +12,8 @@ app = Flask(__name__)
 # ---------- MySQL Connection ----------
 def get_db_connection():
     return mysql.connector.connect(
-        host="127.0.0.1",
-        user="root",
+        host="****",
+        user="*****",
         password="",
         database="attendance_system",
         port=3306
@@ -73,3 +73,4 @@ def register_user():
 
 if __name__ == '__main__':
     app.run(debug=True, port=9000)
+
