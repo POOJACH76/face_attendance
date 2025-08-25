@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Face Attendance System</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5faff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    h2 {
+      color: #2E6DA4;
+      margin-bottom: 20px;
+    }
+
+    video {
+      width: 400px;
+      height: 300px;
+      border: 3px solid #2E6DA4;
+      border-radius: 10px;
+    }
+
+    button {
+      margin: 15px 10px;
+      padding: 12px 25px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      color: white;
+      cursor: pointer;
+    }
+
+    .login-btn {
+      background-color: #28a745;
+    }
+
+    .logout-btn {
+      background-color: #dc3545;
+    }
+
+    .login-btn:hover {
+      background-color: #218838;
+    }
+
+    .logout-btn:hover {
+      background-color: #c82333;
+    }
+
+    #response {
+      margin-top: 20px;
+      font-weight: bold;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <h2>Face Attendance System</h2>
+
+  <video id="video" autoplay></video>
+
+  <div>
+    <button class="login-btn" onclick="submitAttendance('Login')">Login</button>
+    <button class="logout-btn" onclick="submitAttendance('Logout')">Logout</button>
+  </div>
+
+  <p id="response"></p>
+
+  <script>
+    const video = document.getElementById('video');
+    const responseEl = document.getElementById('response');
+
+    // Get webcam stream
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => {
+        video.srcObject = stream;
+      })
+      .catch(err => {
+        alert("Camera access denied.");
+        console.error(err);
+      });
+
+    function submitAttendance(mode) {
+      // Capture image from video
+      const canvas = document.createElement('canvas');
+      canvas.width = 400;
+      canvas.height = 300;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      canvas.toBlob(blob => {
+        const formData = new FormData();
+        formData.append("image", blob, "capture.jpg");
+        formData.append("mode", mode);
+
+        fetch("/recognize", {
+          method: "POST",
+          body: formData
+        })
+          .then(res => res.json())
+          .then(data => {
+            if (data.status === "success") {
+              responseEl.style.color = "green";
+              responseEl.innerText = `${data.message}`;
+            } else {
+              responseEl.style.color = "red";
+              responseEl.innerText = data.message;
+            }
+          })
+          .catch(err => {
+            responseEl.style.color = "red";
+            responseEl.innerText = "Server error. Try again.";
+            console.error(err);
+          });
+      }, "image/jpeg");
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Face Registration</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #eef; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+    input, button { padding: 10px; margin: 5px; font-size: 16px; }
+    video, canvas { width: 400px; height: 300px; border: 2px solid #444; border-radius: 10px; }
+    #captured-images { display: flex; margin-top: 10px; gap: 10px; }
+    button { background-color: #2b6777; color: white; border: none; border-radius: 5px; }
+    button:hover { background-color: #1b4d5c; }
+  </style>
+</head>
+<body>
+  <h2>Face Registration</h2>
+  <input type="text" id="name" placeholder="Enter Name" required>
+  <input type="text" id="emp_id" placeholder="Enter Employee ID" required>
+
+  <video id="video" autoplay></video>
+  <br>
+  <button onclick="capture()">Capture</button>
+  <button onclick="submit()">Submit</button>
+
+  <div id="captured-images"></div>
+
+  <script>
+    const video = document.getElementById('video');
+    const capturedImages = [];
+    const maxCaptures = 3;
+
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => { video.srcObject = stream; })
+      .catch(err => { alert("Camera access denied."); console.error(err); });
+
+    function capture() {
+      if (capturedImages.length >= maxCaptures) {
+        alert("Already captured 3 images.");
+        return;
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = 400; canvas.height = 300;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      document.getElementById('captured-images').appendChild(canvas);
+      canvas.toBlob(blob => { capturedImages.push(blob); }, 'image/jpeg');
+    }
+
+    function submit() {
+      const name = document.getElementById('name').value;
+      const emp_id = document.getElementById('emp_id').value;
+      if (!name || !emp_id) { alert("Please enter name and employee ID."); return; }
+      if (capturedImages.length !== 3) { alert("Please capture exactly 3 images."); return; }
+
+      const formData = new FormData();
+      formData.append("name", name);
+      formData.append("emp_id", emp_id);
+      capturedImages.forEach((blob, i) => { formData.append("images", blob, `face_${i + 1}.jpg`); });
+
+      fetch("/register", { method: "POST", body: formData })
+        .then(res => res.json())
+        .then(data => alert(data.message))
+        .catch(err => { alert("Error submitting data"); console.error(err); });
+    }
+  </script>
+</body>
+</html>
