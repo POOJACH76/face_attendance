@@ -14,7 +14,7 @@ app = Flask(__name__)
 # ---------- MySQL Connection ----------
 def get_db_connection():
     return mysql.connector.connect(
-        host="127.0.0.1",
+        host="****",
         user="root",
         password="",  # your MySQL password
         database="attendance_system",
@@ -158,3 +158,4 @@ def status():
 
 if __name__ == "__main__":
     app.run(port=8000, debug=True)
+
